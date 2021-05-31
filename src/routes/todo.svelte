@@ -82,17 +82,17 @@
           <p>Registering...</p>
         {:then _}
           {#if isRegistedTodo}
-            <p out:fade>Success TODO Registered !</p>
+            <p out:fade>Succeeded in TODO registration !</p>
           {/if}
         {:catch error}
-          <p style="color: red">Failed TODO Registered: {error.message}</p>
+          <p style="color: red">Failed in TODO registration: {error.message}</p>
         {/await}
       </div>
     </form>
   </div>
   <ul class="todo-list">
     {#await getTodoListPromise}
-      <li>Loading</li>
+      <li>Loading...</li>
     {:then todoList}
       {#each todoList as todo }
         <li>
