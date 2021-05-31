@@ -80,7 +80,7 @@
       <div class="todo-registed-status">
         {#await postTodoPromise}
           <p>Registering...</p>
-        {:then}
+        {:then _}
           {#if isRegistedTodo}
             <p out:fade>Success TODO Registered !</p>
           {/if}
