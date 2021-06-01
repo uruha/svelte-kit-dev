@@ -38,22 +38,31 @@
 
   const handleSubmitRegisterTodo = (e: Event) => {
     e.preventDefault();
+    // between start submit and until the API response is returned,
+    // can't use submit button
     isDisabled = true;
+
+    // call api
     postTodoPromise = postTodo($requiredTodoForm);
 
+    // state control on the DOM side by API response
     postTodoPromise.then(res => {
       if(res) {
         isRegistedTodo = res;
 
+        // when POST is successful
+        // fade out the label after 2 seconds to use the submit button
         setTimeout(() => {
           isDisabled = false;
           isRegistedTodo = false;
 
-          $requiredTodoForm = {
+          // reset form values
+          requiredTodoForm.set({
             title: '',
             detail: ''
-          };
+          });
 
+          // refresh todo list
           handleGEtTodoList();
         }, 2000);
       } else {
