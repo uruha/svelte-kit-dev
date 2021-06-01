@@ -86,7 +86,7 @@
         <!-- svelte-ignore a11y-label-has-associated-control -->
         <label>Detail</label>
         <input type="text" bind:value={$requiredTodoForm.detail}>
-        <input type="submit" value="Register TODO" disabled={isDisabled}>
+        <input type="submit" value="Register" disabled={isDisabled}>
   
         <div class="todo-registed-status">
           {#await postTodoPromise}
@@ -116,21 +116,25 @@
     </div>
   </div>
 
-  <ul class="todo-list">
-    {#await getTodoListPromise}
-      <li>Loading...</li>
-    {:then todoList}
-      {#each todoList as todo (todo.id) }
-        <li>
-          <h3>{todo.id}: {todo.title}</h3>
-          <p>{todo.detail}</p>
-          <button on:click={() => handleCloseTodo(todo.id)}>close</button>
-        </li>
-      {/each}
-    {:catch error}
-      <li style="color: red">{error.message}</li>
-    {/await}
-  </ul>
+  <div class="todo-list-container">
+    <ul class="todo-list">
+      {#await getTodoListPromise}
+        <li class="todo-loading">Loading...</li>
+      {:then todoList}
+        {#each todoList as todo (todo.id) }
+          <li class="todo-item">
+            <div>
+              <h3>{todo.id}: {todo.title}</h3>
+              <p>{todo.detail}</p>
+            </div>
+            <button on:click={() => handleCloseTodo(todo.id)}>close</button>
+          </li>
+        {/each}
+      {:catch error}
+        <li class="error">{error.message}</li>
+      {/await}
+    </ul>
+  </div>
 
 </div>
 
@@ -139,11 +143,43 @@
     display: flex;
     align-items: flex-start;
     justify-content: space-around;
+    width: 100vw;
+    height: 100%;
   }
 
+  .control-panel {
+    width: 50vw;
+  }
+
+  .todo-regist {
+    padding: 2rem;
+  }
   .todo-regist form {
     display: grid;
-    grid-template-columns: 20% 80%;
-    grid-column-gap: 10px;
+    grid-template-columns: 20% 60%;
+    grid-column-gap: 1rem;
+    grid-row-gap: 1rem;
+  }
+
+  .todo-list-container {
+    width: 50vw;
+    height: 100%;
+    position: relative;
+  }
+
+  .todo-list {
+    position: absolute;
+    height: 100%;
+    margin: 0;
+    padding: 0;
+    list-style: none;
+    overflow-x: scroll;
+  }
+
+  .todo-item {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 0 1rem;
   }
 </style>
