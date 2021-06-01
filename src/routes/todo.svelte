@@ -1,38 +1,19 @@
 <script lang="ts">
   import { fade } from 'svelte/transition';
 
-  import type { TodoList, RequiredTodoForm } from 'src/type';
-  import { API_ROOT, TODO } from '../constant';
+  import type { Todo } from '../type';
   import { requiredTodoForm } from '../store';
-
-  const getTodoList = async () => {
-    try {
-      const res = await fetch(`${API_ROOT}/${TODO}`);
-      return await res.json() as TodoList;
-    } catch (error) {
-      throw new Error(error.message);
-    }
-  }
-
-  const postTodo = async (formData: RequiredTodoForm) => {
-    try {
-      const res = await fetch(`${API_ROOT}/${TODO}`, {
-        method: 'POST',
-        body: JSON.stringify(formData)
-      });
-      return res.ok;
-    } catch (error) {
-      throw new Error(error.message);
-    }
-  }
+  import { deleteTodo, getTodoList, postTodo } from '../ext.api';
 
   let getTodoListPromise: ReturnType<typeof getTodoList>;
-  let postTodoPromise: ReturnType<typeof postTodo>;
+  let postTodoPromise:    ReturnType<typeof postTodo>;
+  let deleteTodoPromise:  ReturnType<typeof deleteTodo>;
 
-  let isRegistedTodo = false;
-  let isDisabled     = false;
+  let isRegistedTodo   = false;
+  let isDisabled       = false;
+  let isCompletedTodo  = false;
 
-  const handleGEtTodoList = () => {
+  const handleGetTodoList = () => {
     getTodoListPromise = getTodoList();
   }
 
@@ -63,7 +44,7 @@
           });
 
           // refresh todo list
-          handleGEtTodoList();
+          handleGetTodoList();
         }, 2000);
       } else {
         isDisabled = false;
@@ -71,48 +52,86 @@
     });
   }
 
+  const handleCloseTodo = (id: Todo['id']) => {
+    deleteTodoPromise = deleteTodo(id);
+
+    deleteTodoPromise.then(res => {
+      if(res.id) {
+        isCompletedTodo = true;
+
+        setTimeout(() => {
+          isCompletedTodo = false;
+
+          handleGetTodoList();
+        }, 1000);
+      }
+    });
+  }
+
   // page mounted timing fire
-  handleGEtTodoList();
+  handleGetTodoList();
 </script>
 
-<div class="todo-app">
-  <div class="todo-regist">
-    <form on:submit={e => handleSubmitRegisterTodo(e)}>
-      <!-- svelte-ignore a11y-label-has-associated-control -->
-      <label>Title</label>
-      <input type="text" bind:value={$requiredTodoForm.title}>
-      <!-- svelte-ignore a11y-label-has-associated-control -->
-      <label>Detail</label>
-      <input type="text" bind:value={$requiredTodoForm.detail}>
-      <input type="submit" value="Register TODO" disabled={isDisabled}>
+<svelte:head>
+  <title>Simple Todo</title>
+</svelte:head>
 
-      <div class="todo-registed-status">
-        {#await postTodoPromise}
-          <p>Registering...</p>
-        {:then _}
-          {#if isRegistedTodo}
-            <p out:fade>Succeeded in TODO registration !</p>
-          {/if}
-        {:catch error}
-          <p style="color: red">Failed in TODO registration: {error.message}</p>
-        {/await}
-      </div>
-    </form>
+<div class="todo-app">
+  <div class="control-panel">
+    <div class="todo-regist">
+      <form on:submit={e => handleSubmitRegisterTodo(e)}>
+        <!-- svelte-ignore a11y-label-has-associated-control -->
+        <label>Title</label>
+        <input type="text" bind:value={$requiredTodoForm.title}>
+        <!-- svelte-ignore a11y-label-has-associated-control -->
+        <label>Detail</label>
+        <input type="text" bind:value={$requiredTodoForm.detail}>
+        <input type="submit" value="Register TODO" disabled={isDisabled}>
+  
+        <div class="todo-registed-status">
+          {#await postTodoPromise}
+            <p>Registering...</p>
+          {:then _}
+            {#if isRegistedTodo}
+              <p out:fade>Succeeded in TODO registration !</p>
+            {/if}
+          {:catch error}
+            <p style="color: red">Failed in TODO registration: {error.message}</p>
+          {/await}
+        </div>
+      </form>
+    </div>
+
+    <div class="completed-todo-information">
+      {#await deleteTodoPromise}
+        <p>Closing Todo ⏱</p>
+      {:then todo}
+        {#if isCompletedTodo}
+          <div class="completed-todo-pop" out:fade>
+            <h4>Completed !</h4>
+            <p>{todo.id}: {todo.title}</p>
+          </div>
+        {/if}
+      {/await}
+    </div>
   </div>
+
   <ul class="todo-list">
     {#await getTodoListPromise}
       <li>Loading...</li>
     {:then todoList}
-      {#each todoList as todo }
+      {#each todoList as todo (todo.id) }
         <li>
           <h3>{todo.id}: {todo.title}</h3>
           <p>{todo.detail}</p>
+          <button on:click={() => handleCloseTodo(todo.id)}>close</button>
         </li>
       {/each}
     {:catch error}
       <li style="color: red">{error.message}</li>
     {/await}
   </ul>
+
 </div>
 
 <style>
