@@ -8,3 +8,16 @@
 </nav>
 
 <slot></slot>
+
+<style>
+  ul {
+    display: flex;
+    list-style: none;
+    margin: 0;
+    padding: 1rem;
+  }
+
+  li {
+    padding: 0 1rem 0 0;
+  }
+</style>
